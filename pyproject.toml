@@ -1,0 +1,21 @@
+[project]
+name = "pharmpy"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Your Name",email = "you@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy (>=2.4.3,<3.0.0)",
+    "matplotlib (>=3.10.8,<4.0.0)",
+    "pandas (>=3.0.1,<4.0.0)",
+    "scipy (>=1.17.1,<2.0.0)",
+    "tqdm (>=4.67.3,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

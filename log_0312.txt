@@ -1,0 +1,187 @@
+1. kinetic class: A, E activation energy
+2. phasse class: density, heat capacity, solubility. LiquidPhase, SolidPhase
+3. Unit operation : eactor, Crystallizer, Filter
+
+
+# question:
+1. differnence of liquid phase and solid phase and use case?
+2. 
+
+
+# issue
+1. fix pharmpy dependency
+poetry run pip install numpy==1.26.4
+poetry run pip install assimulo
+poetry add git+https://github.com/CryPTSys/PharmaPy.git
+
+fail
+
+try conda : conda create -n pharma_env -c conda-forge
+ python=3.11 assimulo numpy=1.26.4 scipy pandas matplotlib tqdm
+
+
+ conda activate pharma_env
+
+ pip install git+https://github.com/CryPTSys/PharmaPy.git
+
+ conda install scipy=1.9.3
+
+
+
+ # must need
+concentration to time 
+solubility 
+
+
+# work with parameter estimation example 
+
+# batch reaction modeling
+# components
+1. Species and Thermodynamics (The "What") - C:\ProgramData\anaconda3\envs\pharma_env\Lib\site-packages\data\evaporator, thermodynamics, 
+use: RxnKinetics(path_pure, ...)
+solvent (C4H8O, which is THF) has a much higher p_crit
+
+#pure_components_ziegler.json:Thermodynamic Database for your simulation. It tells PharmaPy exactly how the chemical species behave physically.
+convert mass to volume or how much the temperature should change during a reaction.
+
+1. Identification Keys: Formula / cas 
+2. physical Properties : Molecular Weight , rho_liq, rho_vap, rho_solid: Density ($kg/m^3$) for each phase.
+
+your reactants (A, B, C, D) all have a liquid density of 655, while your solvent (THF-like) is denser at 887.6.
+
+3. Temperature-Dependent Coefficients (Arrays)
+
+p_vap: Constants for the Antoine Equation. This calculates the vapor pressure ($P_{sat}$) at a specific temperature.The formula used is typically: $\log_{10}(P) = A - \frac{B}{T + C}$cp_liq / cp_vap: Heat Capacity ($J/mol \cdot K$).If there is only one number in the list (like [265.2]), PharmaPy treats it as a constant.If there were more numbers, it would use a polynomial ($A + BT + CT^2...$) to calculate how much heat the liquid absorbs.
+4. Critical Pointst_crit: Critical Temperature ($K$). The temperature above which the gas cannot be liquefied, regardless of pressure.p_crit: Critical Pressure ($Pa$)
+
+
+LiquidPhase
+Molecular weights, heat capacities ($C_p$), and vapor pressure constants
+Solvent
+2. Reaction Kinetics (The "How Fast")
+"map" of the reaction (e.g., A --> B).
+Rate Laws: Usually based on the Arrhenius equation:
+Parameters: The rate constants ($k$) and Activation Energies ($E_a$) you defined in your k_vals and ea_vals lists.
+
+Rate Laws: k_i = A_i * exp(- E_i / (R * T))
+
+
+3. mass and energy balances
+solver with Ordinary Differential Equations for changes:
+Mass Balance - How concentration changes based on reaction rates
+Energy Balance- Tracks temperature changes ($dT/dt$) based on the heat of reaction ($Q_{rxn}$) and any heating/cooling from the reactor jacket ($Q_{ht}$).
+
+reaction rate: r_i = k_i * Π (C_k ^ α_i,k) for k in R_i
+Mass Balance: dC_j / dt = Σ (ν_i,j * r_i) from i=1 to 4
+ν_i,j (Nu): The stoichiometric coefficient. It is negative if the component is a reactant (consumed) and positive if it is a product (generated)
+
+
+4. Reactor Configuration (The "Where")
+Operating Mode: In your case, a BatchReactor (no inflow or outflow).
+Controls: Is it Isothermal (constaant temperature, which is your current setup since $E_a=0$) or Adiabatic (temp changes as heat is released)?
+Physical Constraints: Volume, surface area for cooling, and agitation speed.
+
+
+5. sensitivity 
+what extent the states (molar concentrations $C_j$) depend on the parameters ($\theta_p$).
+$$S(t) \equiv \frac{dC_j}{d\theta_p} \in \mathbb{R}^{n_{comp} \times n_{param}}$$
+
+The Objective Function (Weighted Sum of Squared Errors$) value the optimizer tries to minimize to find the best-fit parameters.
+$$\min_{\theta} WSSE = (\mathbf{y} - \mathbf{y}_{model})^T \mathbf{W}_y^{-1} (\mathbf{y} - \mathbf{y}_{model})$$
+
+3. The Gradient ($\nabla$)
+The gradient guides the optimizer's search by using the Sensitivity Matrix calculated when eval_sens=True.
+
+$$\nabla_{\theta_p} = \frac{dWSSE}{d\theta_p}$$
+
+
+# acetaminophen project
+
+# required parameters:
+1. Kinetic Parameters (Reaction Engine) 
+Reaction Order
+Arrhenius Constants:
+Heat of Reaction
+2. . Thermodynamic & Phase Data
+Solubility Curve
+Vapor Pressure
+Density ($\rho$) and Viscosity ($\mu$)
+
+3. Crystallization Kinetics (The "Grid")
+Metastable Zone Width (MSZW):
+Growth Coefficient ($G$)
+Nucleation Constants ($B$)
+Shape Factor
+
+4. Engineering / Hardware Specs
+Impeller Type & RPM
+Heat Transfer Coefficient ($U$)
+Filtration Resistance
+
+
+Lacking (Manual)
+Heat of Reaction
+Impeller Type & RPM
+
+
+For your Acetaminophen Virtual Scale-up project, it is helpful to distinguish between what the PharmaPy framework provides (the "Engine") and what you must provide as the User (the "Data").
+
+In the /CryPTSys/PharmaPy/ repository, the library is designed to be a "blank slate." It gives you the mathematical equations, but it doesn't always come pre-loaded with the specific industrial constants for every drug.
+
+1. Kinetic Parameters (Reaction Engine)
+Parameter	Status in PharmaPy	What you need to do
+Reaction Order	Existing (Flexible)	You define this in RxnKinetics(rxn_list=['A + B -> C']). It defaults to 1st order per reactant unless you specify a custom rate law.
+Arrhenius Constants	Existing (Skeleton)	The library has the k_params and ea_params slots, but the specific values for Acetaminophen (E 
+a
+​
+ ≈143 kJ/mol) must be input by you.
+Heat of Reaction	Lacking (Manual)	PharmaPy doesn't calculate ΔH 
+rxn
+​
+  from a database automatically. You must define the enthalpy of your phase or manually enter the heat generated per mole.
+2. Thermodynamic & Phase Data
+Parameter	Status in PharmaPy	What you need to do
+Solubility Curve	Existing (Logic)	The CrystKinetics class has coeff_solub. You must provide the 2–3 coefficients that fit the line S=a+bT+cT 
+2
+  for Acetaminophen in your solvent.
+Vapor Pressure	Lacking (Simplified)	The LiquidPhase uses Antoine coefficients. While there is a minimum_modeling_objects.json in the repo, it is a sample and likely does not contain the real-world vapor pressure for your specific solvent system.
+Density & Viscosity	Existing (Slots)	You enter these in the LiquidPhase or pure_components.json. PharmaPy uses them for mass balance, but you provide the actual numbers (e.g., 1000 kg/m 
+3
+ ).
+3. Crystallization Kinetics (The "Grid")
+Parameter	Status in PharmaPy	What you need to do
+MSZW (Metastable Zone)	Existing (Functional)	PharmaPy uses this to determine when to trigger the solver. You must determine your MSZW in the lab first.
+Growth/Nucleation (G,B)	Existing (Mathematical)	The Population Balance Equation (PBE) is built-in. However, the specific "Growth Order" (usually 1 or 2 for Paracetamol) is a user-defined input.
+Shape Factor	Existing (Geometry)	You can define the crystals as spheres or use a custom factor. For Acetaminophen (Prisms), you must calculate the area/volume ratio (k 
+v
+​
+ ,k 
+a
+​
+ ).
+4. Engineering / Hardware Specs
+Parameter	Status in PharmaPy	What you need to do
+Impeller Type & RPM  (PharmaPy treats the reactor as "well-mixed" by default.)
+
+# demo caes:
+# acetaminophen
+
+1. Sulphanilamide Synthesis (Hydrolysis Case)
+Amide Hydrolysis followed by a Reactive Crystallization.
+A. Reactor Inputs (BatchReactor)
+B. Crystallizer Inputs (Crystallizer)
+
+2. Anthraquinone Synthesis (Cyclization Case)
+A. Reactor Inputs (BatchReactor)
+B. Crystallizer/Purification (Crystallizer)
+
+
+Scale-up: In the lab, you use a 50mL flask. If you scale to 250L,
+Yield Optimization: You achieved 81% and 84% yield. PharmaPy can run an "Optimizer" to see if changing the 45-minute reflux to 60 minutes would reach 95% yield without degrading the product.
+Solvent Savings: For Anthraquinone, you used 180mL of Ethyl Acetate for only 1.5g of product. PharmaPy's LiquidPhase can calculate if you can reduce that solvent by 50% and still get the same purity.
+
+# first predict parameters:
+Arrhenius Equation
+at least two (ideally three or more) isothermal runs:
+Concentration vs. Time Data: You need to measure the disappearance of your reactant (e.g., 4-Acetamidobenzenesulfonamide) at specific time intervals (e.g., 10, 20, 30, 45 mins).Reaction Order: You must know if the reaction is 1st order ($-\frac{d[A]}{dt} = k[A]$) or 2nd order. For your acid-catalyzed hydrolysis, it is typically treated as Pseudo-first order.
+
