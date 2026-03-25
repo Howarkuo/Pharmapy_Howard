@@ -1,0 +1,5 @@
+"While the kinetic model successfully identifies the activation energy ($E_a = 70.53$ kJ/mol), 
+the 1,000L scale-up must account for solvent hydrolysis of the anhydride and oxidative degradation of the aromatic amine,
+ factors that are currently exogenous to the ODE solver but critical for yield and color purity
+
+ --> maybe we can solve by llm
