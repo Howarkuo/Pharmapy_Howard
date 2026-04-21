@@ -98,8 +98,8 @@ def callback_opt(x, simulate=False, raw_material_cost=None, return_augm=True, we
     # --- REACTOR (R01) CONFIGURATION ---
     # Using YOUR Stage 2 Kinetics
     rxns = ['A + B --> C + D']
-    k_real = np.array([2.79e9])    # Pre-exponential A
-    ea_real = np.array([70530.0])  # Ea in J/mol
+    k_real = np.array([2.79e9])    # Pre-exponential A, from parameter_estimation_acetaminophen.py!
+    ea_real = np.array([70530.0])  # Ea in J/mol, , from parameter_estimation_acetaminophen.py!
     
     kinetics = RxnKinetics(path=path_phys, rxn_list=rxns, 
                            k_params=k_real, ea_params=ea_real, 
