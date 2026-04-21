@@ -1,59 +1,68 @@
-{
-    "A": {
-        "Name": "p-Aminophenol",
-        "Formula": "C6H7NO",
-        "CAS": "123-30-8",
-        "mw": 109.13,
-        "p_vap": [10.2, 2800, -50],
-        "rho_liq": 1130,
-        "cp_liq": [150.5, 0, 0, 0, 0],
-        "t_crit": 815.0,
-        "p_crit": 5370000.0
-    },
-    "B": {
-        "Name": "Acetic Anhydride",
-        "Formula": "C4H6O3",
-        "CAS": "108-24-7",
-        "mw": 102.09,
-        "p_vap": [9.2466, 1427.77, -75.11],
-        "rho_liq": 1082,
-        "cp_liq": [184.1, 0, 0, 0, 0],
-        "t_crit": 569.0,
-        "p_crit": 4000000.0
-    },
-    "C": {
-        "Name": "Paracetamol",
-        "Formula": "C8H9NO2",
-        "CAS": "103-90-2",
-        "mw": 151.16,
-        "p_vap": [11.5, 4500, -80],
-        "rho_liq": 1260,
-        "cp_liq": [210.0, 0, 0, 0, 0],
-        "t_crit": 850.0,
-        "p_crit": 4800000.0,
-        "rho_solid": 1261,
-        "cp_solid": [175.0, 0, 0, 0, 0]
-    },
-    "D": {
-        "Name": "Acetic Acid",
-        "Formula": "C2H4O2",
-        "CAS": "64-19-7",
-        "mw": 60.05,
-        "p_vap": [9.6821, 1642.54, -39.76],
-        "rho_liq": 1049,
-        "cp_liq": [124.3, 0, 0, 0, 0],
-        "t_crit": 592.0,
-        "p_crit": 5786000.0
-    },
-    "solvent": {
-        "Name": "Water",
-        "Formula": "H2O",
-        "CAS": "7732-18-5",
-        "mw": 18.015,
-        "p_vap": [10.1, 1687, -42],
-        "rho_liq": 1000,
-        "cp_liq": [75.3, 0, 0, 0, 0],
-        "t_crit": 647.1,
-        "p_crit": 22064000.0
-    }
+
+  {"A": {
+    "Name": "p-Aminophenol",
+    "mw": 109.13,
+    "p_vap": [10.2, 2800, -50],
+    "rho_liq": 1130,
+    "rho_solid": 1130,
+    "cp_liq": [150.5, 0, 0, 0, 0],
+    "cp_solid": [150.5, 0, 0, 0, 0],
+    "visc_liq": [0.0, 0.0, 0.0, 0.0],
+    "surf_tension": 0.050,
+    "t_crit": 815.0,
+    "p_crit": 5370000.0
+  },
+  "B": {
+    "Name": "Acetic Anhydride",
+    "mw": 102.09,
+    "p_vap": [9.2466, 1427.77, -75.11],
+    "rho_liq": 1082,
+    "rho_solid": 1082,
+    "cp_liq": [184.1, 0, 0, 0, 0],
+    "cp_solid": [184.1, 0, 0, 0, 0],
+    "visc_liq": [-0.0458, 0.0, 0.0, 0.0],
+    "surf_tension": 0.030,
+    "t_crit": 569.0,
+    "p_crit": 4000000.0
+  },
+  "C": {
+    "Name": "Paracetamol",
+    "mw": 151.16,
+    "p_vap": [11.5, 4500, -80],
+    "rho_liq": 1260,
+    "rho_solid": 1260,
+    "cp_liq": [210.0, 0, 0, 0, 0],
+    "cp_solid": [185.0, 0, 0, 0, 0],
+    "visc_liq": [0.3010, 0.0, 0.0, 0.0],
+    "surf_tension": 0.045,
+    "t_crit": 850.0,
+    "p_crit": 4800000.0
+  },
+  "D": {
+    "Name": "Acetic Acid",
+    "mw": 60.05,
+    "p_vap": [9.6821, 1642.54, -39.76],
+    "rho_liq": 1049,
+    "rho_solid": 1049,
+    "cp_liq": [124.3, 0, 0, 0, 0],
+    "cp_solid": [124.3, 0, 0, 0, 0],
+    "visc_liq": [0.0414, 0.0, 0.0, 0.0],
+    "surf_tension": 0.028,
+    "t_crit": 592.0,
+    "p_crit": 5786000.0
+  },
+  "solvent": {
+    "Name": "Water",
+    "mw": 18.015,
+    "p_vap": [10.1, 1687, -42],
+    "rho_liq": 1000,
+    "rho_solid": 917,
+    "cp_liq": [75.3, 0, 0, 0, 0],
+    "cp_solid": [37.6, 0, 0, 0, 0],
+    "visc_liq": [0.0, 0.0, 0.0, 0.0],
+    "surf_tension": 0.072,
+    "t_crit": 647.1,
+    "p_crit": 22064000.0
+  }
 }
+
