@@ -30,7 +30,9 @@
         "rho_liq": 1260,
         "cp_liq": [210.0, 0, 0, 0, 0],
         "t_crit": 850.0,
-        "p_crit": 4800000.0
+        "p_crit": 4800000.0,
+        "rho_solid": 1261,
+        "cp_solid": [175.0, 0, 0, 0, 0]
     },
     "D": {
         "Name": "Acetic Acid",

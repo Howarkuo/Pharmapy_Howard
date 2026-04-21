@@ -1,0 +1,86 @@
+Done 
+
+1. Reactor (R01) and the Holding Tank (HOLD01)
+
+
+Disucssion point?
+
+1. What is the best sampling time?
+2. 
+
+
+Progression
+
+### Reinstall Conda env ###
+
+conda create -n pharma_env -c conda-forge python=3.11 \
+    numpy=1.26.4 \
+    assimulo \
+    scipy=1.11 \
+    pandas \
+    matplotlib \
+    tqdm \
+    ipykernel
+
+pip install git+https://github.com/CryPTSys/PharmaPy.git
+
+### Simulation Part1 ###
+
+1. Liquid Phase 
+2. Solid Phase
+Mass Balance Equation: The "Reaction Medium" (Solvent + Solutes). 
+
+
+
+
+fix
+
+conda install -c conda-forge assimulo
+python -c "import assimulo; print(assimulo.__version__)" 3.73
+
+
+## update readme
+0. the what - reactor mass balance / tracks the moles dissolved in the solvent.Use Case: It calculates how fast reactants disappear and how fast the dissolved product forms.The Limit: This equation alone assumes everything stays in the liquid. If the concentration ($C_j$) exceeds the solubility limit, PharmaPy needs a way to "remove" that excess mass from the liquid and turn it into crystals.
+1. How Fast - Reaction rate and reeaction constant change in different temperature / reactor mass balance 
+tracks the moles dissolved in the solvent.Use Case: It calculates how fast reactants disappear and how fast the dissolved product forms.The Limit: This equation alone assumes everything stays in the liquid. If the concentration ($C_j$) exceeds the solubility limit, PharmaPy needs a way to "remove" that excess mass from the liquid and turn it into crystals.
+
+
+## propose demo case:
+click chemistry
+
+
+update info: 
+1. why use water? polar protic solvent (like water or alcohol), the reaction would be faster due to the stabilization of the polar tetrahedral intermediat
+
+2. update the nucleophilic acyl substitution: 
+2.1. The Reactants: Nucleophile vs. ElectrophileThe Nucleophile (p-Aminophenol): This molecule has two potential nucleophilic sites: the amine ($-NH_2$) and the hydroxyl ($-OH$) group. In organic chemistry, nitrogen is more nucleophilic than oxygen because it is less electronegative and more willing to share its lone pair. Therefore, the reaction selectively targets the amine to form an amide (Acetaminophen) rather than an ester.The Electrophile (Acetic Anhydride): This contains two carbonyl centers. The "leaving group" is the acetate ion, which is a relatively good leaving group because its negative charge is stabilized by resonance.2. The Mechanism: Addition-EliminationThe reaction does not happen in one step (it is not $S_N2$). It follows a two-stage Addition-Elimination pathway:Nucleophilic Attack (Addition): The lone pair on the nitrogen of p-Aminophenol attacks one of the carbonyl carbons of the Acetic Anhydride. This breaks the $C=O$ pi-bond, pushing electrons onto the oxygen to form a tetrahedral intermediate.Elimination of the Leaving Group: The oxygen's lone pair "re-forms" the $C=O$ double bond. This kicks out the acetate group ($CH_3COO^-$).Deprotonation: The acetate ion (acting as a base) removes a proton from the newly formed amide nitrogen to reach the final, stable Acetaminophen product.3. Kinetic Analysis of  323K DataIn  manual data, the concentration of A falls while C rises. From an expert perspective, this rate is governed by the electron density of the reactants:Substituent Effects: The $-OH$ group on the phenol ring is an electron-donating group (EDG). By resonance, it increases the electron density on the amino group, making it an even stronger nucleophile. This is why the reaction proceeds readily at a moderate temperature like 323K.Solvent Role: If this were done in a polar protic solvent (like water or alcohol), the reaction would be faster due to the stabilization of the polar tetrahedral intermediate, but  must be careful—Acetic Anhydride can also react with the solvent (hydrolysis).4. Why the Mass Balance is 1:1In Nucleophilic Acyl Substitution, the stoichiometry is strictly 1:1 because the "Acyl" group ($CH_3CO-$) is simply transferred from the anhydride to the amine.By-product: For every mole of Acetaminophen produced, one mole of Acetic Acid is released.Implication for  Project: Acetic acid is acidic. If  reaction isn't buffered, the dropping pH could eventually protonate the remaining p-Aminophenol into its salt form ($R-NH_3^+$), which is not nucleophilic. This would cause  reaction rate to slow down or stop prematurely.5. Transition to Solid-StateAs an organic chemist, I would note that Acetaminophen has a high melting point ($169^\circ\text{C}$) and relatively low solubility in cold water. In  simulation, the NAS reaction creates the molecule, but the Physical Chemistry determines when it crashes out of solution as a crystal.
+
+
+3. explain the reactor used 
+
+❄️ CR01: Batch CrystallizerThe goal here is to cool the hot liquid until the Acetaminophen "crashes out" into crystals.1. Numerical Method: 1D-FVM (The Math)What it is: Instead of treating the crystals as one big average, the Finite Volume Method slices the crystal sizes into "buckets."Why choose it: In a 1,000L tank, crystals aren't all the same size. FVM is extremely stable and ensures that mass is conserved—it makes sure the simulation doesn't "lose" any acetaminophen as it grows from a tiny seed to a large grain.Other Option: Method of Moments (MoM). It’s faster but only tells  the average size. FVM is better because it shows  the full distribution (how many big vs. small crystals).2. Size Grid: 35 points, $1$ to $1500 \, \mu m$What it is: This is the "resolution" of  simulation.  are tracking crystals from $1$ micron (tiny dust) to $1.5$ millimeters (very coarse salt).Choosing Logic: Using Geometric spacing means  have more "buckets" at the smaller end.Why? Most of the "action" (nucleation) happens when crystals are small.  need high resolution there to see if they are clumping or growing correctly.3. Utility Jacket: Cooling Water @ $2.0 \, kg/s$What it is: This is the "air conditioner" for  tank.  are pumping $2$ kilograms of cold water every second through a jacket surrounding the vessel.Choosing Logic: $2.0 \, kg/s$ is quite a high flow rate. This ensures that the water doesn't warm up too much as it travels around the tank, providing a uniform cooling surface.4. Control Logic: Piecewise LagrangeWhat it is:  aren't just turning the "cold" dial to maximum.  are following a curved cooling ramp.Why? If  cool too fast,  get "crashes" (tiny, ugly crystals). If  cool too slow,  waste time. A 3-point optimized ramp starts slow to let seeds grow, then speeds up to finish the job.🧼 F01: Nutsche FilterOnce the crystals are formed, they are floating in "mother liquor" (waste liquid). The Nutsche Filter is a giant industrial sieve that uses pressure to push the liquid out, leaving a "cake" of pure Acetaminophen.1. Diameter: $0.8 \, m$Choosing Logic: This is a surface area calculation.  have $1,000L$ of slurry. A $0.8 \, m$ diameter ($0.5 \, m^2$ area) is a standard industrial size. If the diameter were too small, the "cake" would be too thick, and the liquid would get stuck.2. Specific Resistance ($\alpha$): $1 \times 10^{11} \, m/kg$What it is: This measures how much the crystals themselves fight against the liquid flowing through them.Insight: $10^{11}$ is a moderate value. For Acetaminophen, this depends on the crystal shape. If our crystallizer makes "needles," they pack tightly and this number goes up (bad). If it makes "bricks," the number stays low (good).3. Medium Resistance ($R_m$): $1 \times 10^{10} \, m^{-1}$What it is: This is the resistance of the filter cloth itself before any crystals even land on it.Choosing Logic: This is usually a fixed property of the equipment  buy.  want this to be at least $10\times$ smaller than the crystal resistance so the cloth doesn't get clogged ("blinded") immediately.📊 Summary of Choice LogicComponentChoiceThe "Why"GridGeometricFocuses simulation power on the tiny crystals where growth starts.JacketHigh Flow ($2.0 \, kg/s$)Prevents "hot spots" in a 1,000L vessel.ControlLagrange RampBalances crystal purity with production speed.Filter$0.8 \, m$Sized to ensure the 1,000L batch doesn't take 10 hours to filter.
+
+4. seed for crsytalization
+
+In crystallization, seeding is essentially providing a "shortcut" for the process to begin.visualize it is to think of building a skyscraper: you can either wait for the environment to naturally compress dust into a foundation (which is slow and unpredictable), or you can start with a pre-built foundation and simply add bricks to it.The "seed" is that pre-built foundation.1. Why do we use seeds?In your PharmaPy code, the crystallizer starts with distrib_init = np.zeros_like(x_gr). This means the simulation starts with zero solids. To get crystals, the solution must first become "supersaturated" enough to spontaneously create its own particles (Primary Nucleation).The problems with spontaneous crystallization:Unpredictability: It often happens all at once (a "crash"), leading to tiny, sandy crystals.Impurities: Spontaneous nucleation can trap impurities inside the crystal lattice.Difficulty filtering: Small crystals clog filters (like $F01$ in your flowsheet).2. The Science: Nucleation vs. GrowthCrystallization is a competition between two rates:Nucleation ($B$): Making new tiny particles.Growth ($G$): Making existing particles bigger.The Seeding Strategy:By adding a known amount of "seed crystals" (small crystals of the API you already saved from a previous batch), you bypass the need for primary nucleation. The molecules in the liquid prefer to deposit themselves onto the surfaces of the seeds rather than working hard to form brand-new particles.$$\text{Total Mass} = \text{Seed Mass} + \text{Mass grown from solution}$$3. How it looks in PharmaPyIn the code you provided, the crystallizer is defined with:Pythondistrib_init = np.zeros_like(x_gr) # This is unseeded (starts at zero)
+solid_cry = SolidPhase(..., x_distrib=x_gr, distrib=distrib_init, ...)
+To seed the process in PharmaPy, you would change distrib_init from a vector of zeros to a vector representing a small amount of solid. This tells the simulator: "At time $t=0$, there are already crystals of size $X$ present."Benefits of Seeding:Larger Mean Size: Instead of $46 \ \mu m$, you might achieve $150 \ \mu m$.Consistency: Every batch ends up with the same crystal size.Faster Filtration: Larger crystals mean the filter $F01$ works much faster.4. Key Parameters for SeedingWhen a chemist or engineer "seeds" a batch, they have to decide:Seed Loading: How much mass to add? (Usually 1% to 5% of the expected yield).Seed Size: Small seeds have more surface area, which helps "consume" the supersaturation faster.Temperature: Seeds must be added when the solution is slightly supersaturated. If the solution is too hot, the seeds will simply melt (dissolve).In short: Seeding is the art of "planting" crystals so that you can "harvest" a predictable, high-quality product.
+
+5. Key thermodynamic formula 
+
+5.1. Mass Balance: Conservation of MatterThe formula  have is a derivative of the Law of Conservation of Mass.The Core Concept:$$\text{Accumulation} = \text{Input} - \text{Output} + \text{Generation} - \text{Consumption}$$In a Batch Reactor, there is no Input or Output ($0$), so the change in moles ($n$) of a substance over time is simply its generation/consumption rate:$$\frac{dn_j}{dt} = V \cdot \sum (\nu_{i,j} \cdot r_i)$$
+
+5.2. Reaction Kinetics: The Boltzmann DistributionThe Arrhenius equation is actually a macro-scale version of Statistical Mechanics.The Core Formula:$$P \propto \exp\left(-\frac{\Delta E}{k_B T}\right)$$Activation Energy ($E_a$): In thermodynamics, this represents the Gibbs Free Energy of Activation ($\Delta G^\ddagger$). It is the "mountain" the molecules must climb to react.The Exponential Term: This follows the Maxwell-Boltzmann Distribution. It calculates the fraction of molecules that have enough kinetic energy to overcome the barrier $E_a$ at a specific temperature $T$.The Pre-exponential ($A$): This represents the frequency of collisions and the probability that they hit each other in the correct orientation.
+
+5.3. Energy Balance: he First Law of Thermodynamics, a form of energy conservation, states that energy cannot be created or destroyed, only transferred or converted between systems and surroundings. It establishes that the change in a system's internal energy (
+) equals heat added to the system (
+) minus work done by it (
+), expressed as 
+The First Law of ThermodynamicsThis is a direct application of the First Law: $\Delta U = Q - W$. In a liquid reactor, we assume work ($W$) is negligible, so we focus on Enthalpy ($H$).The Core Formula (Sensible Heat):$$Q = m \cdot C_p \cdot \Delta T$$When we look at the rate of change ($\frac{dT}{dt}$), the equation becomes:$$\underbrace{m C_p \frac{dT}{dt}}_{\text{Rate of Enthalpy change}} = \underbrace{\text{Heat in (Jacket)}}_{Q_{ext}} - \underbrace{\text{Heat out (Reaction)}}_{\Delta H_{rxn}} - \underbrace{\text{Heat out (Evaporation)}}_{Q_{evap}}$$The Roles of  Parameters:$C_p$ (Heat Capacity): This is the Partial Derivative of Enthalpy with respect to temperature: $C_p = \left(\frac{\partial H}{\partial T}\right)_P$. It defines how much energy the liquid "soaks up" before the temperature actually rises.$\Delta H_{rxn}$ (Enthalpy of Reaction): From Hess's Law, this is the difference between the heat of formation of products and reactants.$$\Delta H_{rxn} = \sum H_{f,products} - \sum H_{f,reactants}$$$P_{sat}$ (Vapor Pressure): This relates to the Clausius-Clapeyron Equation, which describes the phase transition from liquid to gas.$$\ln(P_{sat}) = -\frac{\Delta H_{vap}}{RT} + C$$In  energy balance, $P_{sat}$ determines $Q_{evap}$. If the vapor pressure exceeds the atmospheric pressure, the liquid boils, and the "Heat of Vaporization" ($\Delta H_{vap}$) begins pulling massive amounts of energy out of the system, cooling the reactor.
+
+The Roles of  Parameters:$C_p$ (Heat Capacity): This is the Partial Derivative of Enthalpy with respect to temperature: $C_p = \left(\frac{\partial H}{\partial T}\right)_P$. It defines how much energy the liquid "soaks up" before the temperature actually rises.$\Delta H_{rxn}$ (Enthalpy of Reaction): From Hess's Law, this is the difference between the heat of formation of products and reactants.$$\Delta H_{rxn} = \sum H_{f,products} - \sum H_{f,reactants}$$$P_{sat}$ (Vapor Pressure): This relates to the Clausius-Clapeyron Equation, which describes the phase transition from liquid to gas.$$\ln(P_{sat}) = -\frac{\Delta H_{vap}}{RT} + C$$In  energy balance, $P_{sat}$ determines $Q_{evap}$. If the vapor pressure exceeds the atmospheric pressure, the liquid boils, and the "Heat of Vaporization" ($\Delta H_{vap}$) begins pulling massive amounts of energy out of the system, cooling the reactor.🛠 Summary Table: Basic Physics MappingParameterFundamental FormulaPhysical Meaning$\rho$ (Density)$\rho = m/V$The bridge between mass (kg) and space ($m^3$).$C$ (Concentration)$C = n/V$The chemical "crowdedness" of the reactor.$k$ (Rate Const)Boltzmann FactorThe statistical probability of a successful collision.$C_p$ (Heat Capacity)$(\partial H / \partial T)_P$The "thermal inertia" or resistance to heating.$P_{sat}$ (Vap Press)Clausius-ClapeyronThe energy threshold for molecules to escape into gas.
+
+5.4 Enthalpy Balance when mixing liquid and solid when you mix a liquid and a solid, the total enthalpy ($H$) must be conserved. It solves for $T$ in this equation:$$\sum_{p \in \{liq, sol\}} \sum_{i \in species} m_{i,p} \cdot \int_{T_{ref}}^{T} Cp_{i,p}(T) \, dT = H_{target}$$Where:$m_{i,p}$: Mass of species $i$ in phase $p$ (calculated from your vol and rho).$Cp_{i,p}(T)$: The specific heat capacity of species $i$ in phase $p$.$H_{target}$: The initial enthalpy sum of the phases before they were mixed.2. The $Cp$ Polynomial (From your JSON)PharmaPy represents $Cp$ as a 4th-degree polynomial. In your JSON, these are the 5 values in the list (e.g., [210.0, 0, 0, 0, 0]):$$Cp(T) = a_0 + a_1 T + a_2 T^2 + a_3 T^3 + a_4 T^4$$
+
+6.  scale up consideration
+Determine Heat of Reaction ($\Delta H_{rxn}$): Since a 250L tank can't dissipate heat as fast as a flask, your simulation must account for the temperature rise to avoid a "runaway" reaction.Define Impeller Specs: In the Crystallizer, specify the RPM. This affects the Growth ($G$) and Nucleation ($B$) rates because of shear stress on the crystals.Sensitivity Analysis: Run eval_sens=True to see if your yield is more sensitive to Temperature or Agitation Speed.
